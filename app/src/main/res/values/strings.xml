@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Mosaic</string>
+    <string name="btn_split">Разбить</string>
+    <string name="_36_chunks">36 частей</string>
+    <string name="_25_chunks">25 частей</string>
+    <string name="_16_chunks">16 частей</string>
+    <string name="_9_chunks">9 частей</string>
+    <string name="btn_unite">Объединить</string>
+    <string name="split_on">Разбить на</string>
+</resources>
