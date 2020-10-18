@@ -2,8 +2,7 @@ package com.example.mosaic.splitImage
 
 import kotlin.math.sqrt
 
-class CheckBorderlineSituation {
-    companion object {
+object CheckBorderlineSituation {
         fun isRightMost(position: Int, size: Int): Boolean {
             val numOfColumns = sqrt(size.toDouble()).toInt()
             return (position + 1) % numOfColumns == 0
@@ -23,5 +22,4 @@ class CheckBorderlineSituation {
             val numOfColumns = sqrt(size.toDouble()).toInt()
             return position > size - numOfColumns - 1
         }
-    }
 }

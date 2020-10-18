@@ -1,7 +1,9 @@
 package com.example.mosaic.splitImage
 
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.mosaic.SplitActivity
@@ -37,9 +39,6 @@ class WholeImageFragment: Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-
         viewBinding = null
-        //activity!!.supportFragmentManager.popBackStack("splitImageBackStack",0)
-//        fragmentManager!!.popBackStack()
     }
 }

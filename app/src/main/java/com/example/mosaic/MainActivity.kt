@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
 import android.view.MenuItem
+import android.widget.Toast
 import com.example.mosaic.databinding.ActivityMainBinding
 import com.example.mosaic.pickImage.PickImageFragment
 import com.example.mosaic.splitImage.CloseAppService
@@ -20,14 +21,6 @@ import java.io.*
 class MainActivity : AppCompatActivity(), Parcelable {
     private lateinit var binding: ActivityMainBinding
     private val pickImageFragment = PickImageFragment()
-    //private val URL_VAN_DE_BEEK = "https://s5o.ru/storage/simple/ru/edt/3f/89/46/b8/rueb83649b03b.jpg"
-
-    companion object {
-        val SELECT_PHOTO_BITMAP = "select photo"
-        val URL_VAN_DE_BEEK = "https://en.as.com/en/imagenes/2019/05/14/football/1557856148_483633_1557859285_noticia_normal.jpg"
-        val URL_VAN_DE_BEEK2 = "https://i2-prod.manchestereveningnews.co.uk/sport/football/football-news/article18883610.ece/ALTERNATES/s810/0_GettyImages-1228345856.jpg"
-        val URL_VAN_DE_BEEK3 = "https://images.unsplash.com/photo-1598470290240-a78f3be3262e?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max"
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +35,7 @@ class MainActivity : AppCompatActivity(), Parcelable {
             setContentView(root)
 
             btnSelectPhoto.setOnClickListener {
-                toast("Пока без этого")
+                //toast("пока без этого")
                 val intent = Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                 intent.type = "image/*"
                 startActivityForResult(intent,0)
