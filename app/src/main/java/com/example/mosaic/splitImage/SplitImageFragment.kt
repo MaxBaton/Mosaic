@@ -19,7 +19,8 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.mosaic.R
-import com.example.mosaic.SplitActivity
+import com.example.mosaic.beforeSplitting.SaveBitmap
+import com.example.mosaic.beforeSplitting.SplitActivity
 import com.example.mosaic.databinding.SplitImageFragmentBinding
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -30,7 +31,7 @@ import kotlin.math.sqrt
 class SplitImageFragment: Fragment() {
     private var viewBinding: SplitImageFragmentBinding? = null
     private var chunksImage: MutableList<Bitmap>? = null
-    private lateinit var selectedImage: String
+    //private lateinit var selectedImage: String
 
     companion object {
         private const val SPACE_IN_PIXEL = 3
@@ -51,7 +52,12 @@ class SplitImageFragment: Fragment() {
         val numOfChunks = arguments!!.getInt(SplitActivity.NUM_OF_CHUNKS)
         val imageViewHeight = arguments!!.getInt(SplitActivity.IMAGE_VIEW_HEIGHT)
         val imageViewWidth = arguments!!.getInt(SplitActivity.IMAGE_VIEW_WIDTH)
-        selectedImage = arguments!!.getString(SplitActivity.PHOTO_BITMAP)!!
+        val keySelected = arguments!!.getInt(SplitActivity.KEY_SELECTED)
+        val selectedImage = if (keySelected != 1) {
+            arguments!!.getString(SplitActivity.PHOTO_BITMAP)!!
+        }else {
+            SaveBitmap.bitmap!!.copy(Bitmap.Config.ARGB_8888,true)
+        }
         var photoBitmap: Bitmap? = null
 
         Glide

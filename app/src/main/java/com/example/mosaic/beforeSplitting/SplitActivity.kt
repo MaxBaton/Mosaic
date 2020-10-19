@@ -1,7 +1,7 @@
-package com.example.mosaic
+package com.example.mosaic.beforeSplitting
 
 import android.content.Intent
-import android.graphics.BitmapFactory
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.DisplayMetrics
@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
+import com.example.mosaic.*
 import com.example.mosaic.databinding.ActivitySplitBinding
 import com.example.mosaic.pickImage.UrlPictures
 import com.example.mosaic.splitImage.CloseAppService
@@ -24,6 +25,7 @@ class SplitActivity : AppCompatActivity(), Parcelable {
     private val wholeImageFragment = WholeImageFragment()
     private var myMenu: Menu? = null
     private var maxImageHeight = 0
+    private var keySelected = 0
 
 
     companion object {
@@ -54,16 +56,17 @@ class SplitActivity : AppCompatActivity(), Parcelable {
         val closeAppService = Intent(this,CloseAppService::class.java)
         startService(closeAppService)
 
+        val bitmapFromClass = SaveBitmap.bitmap
+
         binding = ActivitySplitBinding.inflate(layoutInflater)
 
         with(binding) {
             setContentView(root)
 
             val sendImage = selectedFromImage(intent.getStringExtra(KeysSelectedFrom.SELECTED_IMAGE_KEY))
-            var keySelected = 0
             val loadImage = if (!UrlPictures.urls.contains(sendImage)) {
                 keySelected = 1
-                BitmapFactory.decodeFile(sendImage)
+                bitmapFromClass!!.copy(Bitmap.Config.ARGB_8888,true)
             }else {
                 sendImage
             }
@@ -82,7 +85,7 @@ class SplitActivity : AppCompatActivity(), Parcelable {
 //                    bundle.putString(MainActivity.SELECT_PHOTO_BITMAP,json)
 
 
-                    bundle.putString(PHOTO_BITMAP,sendImage)
+                    if (keySelected != 1) bundle.putString(PHOTO_BITMAP,sendImage)
                     bundle.putInt(NUM_OF_CHUNKS,size)
                     bundle.putInt(IMAGE_VIEW_HEIGHT,imageViewHeight)
                     bundle.putInt(IMAGE_VIEW_WIDTH,imageViewWidth)
@@ -134,7 +137,7 @@ class SplitActivity : AppCompatActivity(), Parcelable {
     private fun selectedFromImage(selectedFrom: String?) = when(selectedFrom) {
         KeysSelectedFrom.DEFAULT_IMAGE_KEY -> intent.getStringExtra(KeysSelectedFrom.DEFAULT_IMAGE)
         KeysSelectedFrom.GALLERY_IMAGE_KEY -> intent.getStringExtra(KeysSelectedFrom.GALLERY_IMAGE)
-        KeysSelectedFrom.CAMERA_IMAGE_KEY  -> intent.getStringExtra(KeysSelectedFrom.CAMERA_IMAGE)
+        KeysSelectedFrom.CAMERA_IMAGE_KEY -> intent.getStringExtra(KeysSelectedFrom.CAMERA_IMAGE)
         else -> ""
     }
 
@@ -158,8 +161,9 @@ class SplitActivity : AppCompatActivity(), Parcelable {
         if (item.itemId == R.id.menu_show_whole_image) {
             val bundle = Bundle()
             val sendImage = selectedFromImage(intent.getStringExtra(KeysSelectedFrom.SELECTED_IMAGE_KEY))
-            bundle.putString(PHOTO_BITMAP,sendImage)
+            if (keySelected != 1) bundle.putString(PHOTO_BITMAP,sendImage)
             bundle.putInt(MAX_IMAGE_HEIGHT,maxImageHeight)
+            bundle.putInt(KEY_SELECTED,keySelected)
             wholeImageFragment.arguments = bundle
 
             supportFragmentManager.beginTransaction().add(android.R.id.content,wholeImageFragment)
@@ -175,6 +179,6 @@ class SplitActivity : AppCompatActivity(), Parcelable {
 
     override fun onDestroy() {
         super.onDestroy()
-        DeleteCache.deleteCache(activity = this,application = application)
+        DeleteCache.deleteCache(activity = this, application = application)
     }
 }

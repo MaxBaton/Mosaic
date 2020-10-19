@@ -6,9 +6,9 @@ import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
-import com.example.mosaic.KeysSelectedFrom
+import com.example.mosaic.beforeSplitting.KeysSelectedFrom
 import com.example.mosaic.R
-import com.example.mosaic.SplitActivity
+import com.example.mosaic.beforeSplitting.SplitActivity
 import com.example.mosaic.databinding.PickImageFragmentBinding
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder

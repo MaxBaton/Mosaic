@@ -1,4 +1,4 @@
-package com.example.mosaic
+package com.example.mosaic.beforeSplitting
 
 object KeysSelectedFrom {
     //selected image
