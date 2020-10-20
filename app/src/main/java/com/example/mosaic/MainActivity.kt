@@ -15,11 +15,17 @@ import android.view.MenuItem
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.recyclerview.widget.DividerItemDecoration
+import com.bumptech.glide.Glide
 import com.example.mosaic.beforeSplitting.SaveBitmap
 import com.example.mosaic.beforeSplitting.SplitActivity
 import com.example.mosaic.databinding.ActivityMainBinding
 import com.example.mosaic.pickImage.PickImageFragment
+import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.GroupieViewHolder
+import com.xwray.groupie.Item
 import kotlinx.android.parcel.Parcelize
+import kotlinx.android.synthetic.main.way_taking_image.view.*
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -31,7 +37,7 @@ class MainActivity : AppCompatActivity(), Parcelable {
     private val pickImageFragment = PickImageFragment()
     private var currentPhotoPath: String? = null
 
-    private companion object {
+    companion object {
         const val GALLERY_REQUEST_CODE = 0
         const val CAMERA_REQUEST_CODE = 1
     }
@@ -41,22 +47,46 @@ class MainActivity : AppCompatActivity(), Parcelable {
         setContentView(R.layout.activity_main)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
+        val groupAdapter = GroupAdapter<GroupieViewHolder>()
+
         with(binding) {
             setContentView(root)
 
-            btnSelectPhoto.setOnClickListener {
-                //toast("пока без этого")
-                val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                intent.type = "image/*"
-                startActivityForResult(intent, GALLERY_REQUEST_CODE)
+            recyclerViewMain.apply {
+                setHasFixedSize(true)
+                adapter = groupAdapter
+                addItemDecoration(DividerItemDecoration(this@MainActivity,DividerItemDecoration.VERTICAL))
             }
 
-            btnSelectDeafultPicture.setOnClickListener {
-                supportFragmentManager.beginTransaction().add(android.R.id.content, pickImageFragment)
-                    .addToBackStack("pickImageFragment").commit()
+            WaysTakingPictures.images.forEachIndexed { index, s ->
+                groupAdapter.add(WayTakingImageItem(imageWayTakingImageUrl = s, name = WaysTakingPictures.names[index]))
             }
 
-            btnTakePhoto.setOnClickListener {
+            groupAdapter.setOnItemClickListener { item, _ ->
+                val name = (item as WayTakingImageItem).name
+                pickWayForTakingImage(name)
+            }
+        }
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 1) {
+                supportActionBar!!.title = "Выбор картинки"
+
+                supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+                supportActionBar!!.setDisplayShowHomeEnabled(true)
+            }else {
+                supportActionBar!!.title = "Mosaic"
+
+                supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+                supportActionBar!!.setDisplayShowHomeEnabled(false)
+            }
+        }
+    }
+
+    private fun pickWayForTakingImage(name: String) {
+        when (name) {
+            //camera
+            WaysTakingPictures.names[0] -> {
                 Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
                     // Ensure that there's a camera activity to handle the intent
                     takePictureIntent.resolveActivity(packageManager)?.also {
@@ -80,19 +110,16 @@ class MainActivity : AppCompatActivity(), Parcelable {
                     }
                 }
             }
-        }
-
-        supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount == 1) {
-                supportActionBar!!.title = "Выбор картинки"
-
-                supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-                supportActionBar!!.setDisplayShowHomeEnabled(true)
-            }else {
-                supportActionBar!!.title = "Mosaic"
-
-                supportActionBar!!.setDisplayHomeAsUpEnabled(false)
-                supportActionBar!!.setDisplayShowHomeEnabled(false)
+            //gallery
+            WaysTakingPictures.names[1] -> {
+                val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                intent.type = "image/*"
+                startActivityForResult(intent, GALLERY_REQUEST_CODE)
+            }
+            //default image
+            WaysTakingPictures.names[2] -> {
+                supportFragmentManager.beginTransaction().add(android.R.id.content, pickImageFragment)
+                    .addToBackStack("pickImageFragment").commit()
             }
         }
     }
@@ -143,6 +170,19 @@ class MainActivity : AppCompatActivity(), Parcelable {
             val source = ImageDecoder.createSource(this.contentResolver, Uri.fromFile(file))
             val bitmap = ImageDecoder.decodeBitmap(source)
             openSplitActivity(bitmap)
+        }
+    }
+
+    inner class WayTakingImageItem( val imageWayTakingImageUrl: String, var name: String) : Item<GroupieViewHolder>() {
+        override fun getLayout() = R.layout.way_taking_image
+
+        override fun bind(viewHolder: GroupieViewHolder, position: Int) {
+            Glide
+                .with(this@MainActivity)
+                .load(imageWayTakingImageUrl)
+                .into(viewHolder.itemView.image_view_way_taking_image)
+
+            viewHolder.itemView.text_view_way_taking_image.text = name
         }
     }
 }
