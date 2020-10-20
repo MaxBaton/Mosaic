@@ -15,7 +15,6 @@ import android.view.MenuItem
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import com.example.mosaic.beforeSplitting.KeysSelectedFrom
 import com.example.mosaic.beforeSplitting.SaveBitmap
 import com.example.mosaic.beforeSplitting.SplitActivity
 import com.example.mosaic.databinding.ActivityMainBinding
@@ -47,19 +46,13 @@ class MainActivity : AppCompatActivity(), Parcelable {
 
             btnSelectPhoto.setOnClickListener {
                 //toast("пока без этого")
-                val intent = Intent(
-                    Intent.ACTION_PICK,
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                )
+                val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                 intent.type = "image/*"
                 startActivityForResult(intent, GALLERY_REQUEST_CODE)
             }
 
             btnSelectDeafultPicture.setOnClickListener {
-                supportFragmentManager.beginTransaction().add(
-                    android.R.id.content,
-                    pickImageFragment
-                )
+                supportFragmentManager.beginTransaction().add(android.R.id.content, pickImageFragment)
                     .addToBackStack("pickImageFragment").commit()
             }
 
@@ -110,6 +103,27 @@ class MainActivity : AppCompatActivity(), Parcelable {
         return super.onOptionsItemSelected(item)
     }
 
+    private fun openSplitActivity(bitmap: Bitmap) {
+        val intent = Intent(this, SplitActivity::class.java)
+        SaveBitmap.bitmap = bitmap
+        startActivity(intent)
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        // Create an image file name
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        return File.createTempFile(
+            "JPEG_${timeStamp}_", /* prefix */
+            ".jpg", /* suffix */
+            storageDir /* directory */
+        ).apply {
+            // Save a file: path for use with ACTION_VIEW intents
+            currentPhotoPath = absolutePath
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -129,27 +143,6 @@ class MainActivity : AppCompatActivity(), Parcelable {
             val source = ImageDecoder.createSource(this.contentResolver, Uri.fromFile(file))
             val bitmap = ImageDecoder.decodeBitmap(source)
             openSplitActivity(bitmap)
-        }
-    }
-
-    private fun openSplitActivity(bitmap: Bitmap) {
-        val intent = Intent(this, SplitActivity::class.java)
-        SaveBitmap.bitmap = bitmap
-        startActivity(intent)
-    }
-
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
-        // Create an image file name
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-        return File.createTempFile(
-            "JPEG_${timeStamp}_", /* prefix */
-            ".jpg", /* suffix */
-            storageDir /* directory */
-        ).apply {
-            // Save a file: path for use with ACTION_VIEW intents
-            currentPhotoPath = absolutePath
         }
     }
 }

@@ -23,7 +23,7 @@ class SplitActivity : AppCompatActivity(), Parcelable {
     private lateinit var binding: ActivitySplitBinding
     private val splitImageFragment = SplitImageFragment()
     private val wholeImageFragment = WholeImageFragment()
-    private var myMenu: Menu? = null
+//    private var myMenu: Menu? = null
     private var maxImageHeight = 0
     private var keySelected = 0
 
@@ -35,6 +35,7 @@ class SplitActivity : AppCompatActivity(), Parcelable {
         const val IMAGE_VIEW_WIDTH = "image view width"
         const val KEY_SELECTED = "key selected"
         const val MAX_IMAGE_HEIGHT = "maximum height of image"
+        var myMenu: Menu? = null //at the moment so
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

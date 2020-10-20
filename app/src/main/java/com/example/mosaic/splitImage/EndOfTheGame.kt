@@ -9,6 +9,7 @@ import android.view.animation.AnimationUtils
 import androidx.fragment.app.FragmentActivity
 import com.bumptech.glide.Glide
 import com.example.mosaic.R
+import com.example.mosaic.beforeSplitting.SplitActivity
 import com.example.mosaic.databinding.SplitImageFragmentBinding
 
 object EndOfTheGame {
@@ -38,6 +39,7 @@ object EndOfTheGame {
         viewBinding.recyclerViewSplitPhoto.visibility = View.GONE
         viewBinding.imageViewEndOfTheGame.animation = wholeImageAnimation
         viewBinding.imageViewEndOfTheGame.visibility = View.VISIBLE
+        SplitActivity.myMenu!!.getItem(0).isVisible = false //at hte moment so
     }
 
     private fun finalAlertDialog(activity: FragmentActivity?) = with(AlertDialog.Builder(activity)) {
