@@ -4,23 +4,33 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Parcelable
 import android.provider.MediaStore
+import android.util.Log
 import android.view.MenuItem
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.example.mosaic.beforeSplitting.KeysSelectedFrom
 import com.example.mosaic.beforeSplitting.SaveBitmap
 import com.example.mosaic.beforeSplitting.SplitActivity
 import com.example.mosaic.databinding.ActivityMainBinding
 import com.example.mosaic.pickImage.PickImageFragment
 import kotlinx.android.parcel.Parcelize
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Parcelize
 class MainActivity : AppCompatActivity(), Parcelable {
     private lateinit var binding: ActivityMainBinding
     private val pickImageFragment = PickImageFragment()
+    private var currentPhotoPath: String? = null
 
     private companion object {
         const val GALLERY_REQUEST_CODE = 0
@@ -30,10 +40,6 @@ class MainActivity : AppCompatActivity(), Parcelable {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-//        val closeAppService = Intent(this, CloseAppService::class.java)
-//        closeAppService.putExtra("activity",this)
-//        startService(closeAppService)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         with(binding) {
@@ -58,9 +64,27 @@ class MainActivity : AppCompatActivity(), Parcelable {
             }
 
             btnTakePhoto.setOnClickListener {
-                val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                if (intent.resolveActivity(packageManager) != null) {
-                    startActivityForResult(intent, CAMERA_REQUEST_CODE)
+                Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+                    // Ensure that there's a camera activity to handle the intent
+                    takePictureIntent.resolveActivity(packageManager)?.also {
+                        // Create the File where the photo should go
+                        val photoFile: File? = try {
+                            createImageFile()
+                        } catch (ex: IOException) {
+                            Log.e("CameraIntent",ex.toString())
+                            null
+                        }
+                        // Continue only if the File was successfully created
+                        photoFile?.also {
+                            val photoURI: Uri = FileProvider.getUriForFile(
+                                this@MainActivity,
+                                "com.example.android.fileprovider",
+                                it
+                            )
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                            startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE)
+                        }
+                    }
                 }
             }
         }
@@ -86,6 +110,7 @@ class MainActivity : AppCompatActivity(), Parcelable {
         return super.onOptionsItemSelected(item)
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -98,24 +123,33 @@ class MainActivity : AppCompatActivity(), Parcelable {
                 val source = ImageDecoder.createSource(contentResolver, selectPhotoUri!!)
                 ImageDecoder.decodeBitmap(source)
             }
-            val intent = Intent(this, SplitActivity::class.java)
-            SaveBitmap.bitmap = bitmap
-            //intent.putExtra(KeysSelectedFrom.SELECTED_IMAGE_KEY, KeysSelectedFrom.GALLERY_IMAGE_KEY)
-            startActivity(intent)
-        }else if (requestCode == 1 && resultCode == Activity.RESULT_OK && data != null) {
-            val bitmap:Bitmap = data.extras!!["data"] as Bitmap
+            openSplitActivity(bitmap)
+        }else if (requestCode == 1 && resultCode == Activity.RESULT_OK /*&& data != null*/) {
+            val file = File(currentPhotoPath)
+            val source = ImageDecoder.createSource(this.contentResolver, Uri.fromFile(file))
+            val bitmap = ImageDecoder.decodeBitmap(source)
+            openSplitActivity(bitmap)
+        }
+    }
 
-//            val selectedPhotoUri = data.data
-//            val bitmap = if (Build.VERSION.SDK_INT < 28) {
-//                MediaStore.Images.Media.getBitmap(contentResolver, selectedPhotoUri)
-//            } else {
-//                val source = ImageDecoder.createSource(contentResolver, selectedPhotoUri!!)
-//                ImageDecoder.decodeBitmap(source)
-//            }
-            val intent = Intent(this, SplitActivity::class.java)
-            SaveBitmap.bitmap = bitmap
-//            //intent.putExtra(KeysSelectedFrom.SELECTED_IMAGE_KEY, KeysSelectedFrom.CAMERA_IMAGE_KEY)
-            startActivity(intent)
+    private fun openSplitActivity(bitmap: Bitmap) {
+        val intent = Intent(this, SplitActivity::class.java)
+        SaveBitmap.bitmap = bitmap
+        startActivity(intent)
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        // Create an image file name
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        return File.createTempFile(
+            "JPEG_${timeStamp}_", /* prefix */
+            ".jpg", /* suffix */
+            storageDir /* directory */
+        ).apply {
+            // Save a file: path for use with ACTION_VIEW intents
+            currentPhotoPath = absolutePath
         }
     }
 }
